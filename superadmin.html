@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Super Admin — TapCard</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.stats-grid{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card.blue{border-color:#D0DDFF;background:var(--blue3)} .stat-card.blue .stat-value{color:var(--blue)}
+.stat-card.green{border-color:#A7F3D0;background:#ECFDF5} .stat-card.green .stat-value{color:var(--green)}
+.stat-card.gold{border-color:#FCD34D;background:#FFFBEB} .stat-card.gold .stat-value{color:var(--gold)}
+.stat-card.purple{border-color:#DDD6FE;background:#F5F3FF} .stat-card.purple .stat-value{color:var(--purple)}
+.company-logo{width:36px;height:36px;border-radius:10px;background:var(--blue3);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--blue);flex-shrink:0}
+.tab-bar{display:flex;gap:2px;border-bottom:1.5px solid var(--border);margin-bottom:24px}
+.tab-btn{padding:10px 20px;font-size:14px;font-weight:600;color:var(--gray);border:none;background:none;cursor:pointer;font-family:'Inter';border-bottom:2.5px solid transparent;margin-bottom:-1.5px;transition:all .15s}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:700}
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>
+      <span class="sidebar-logo-text">TapCard</span>
+      <span class="sidebar-logo-badge">ADMIN</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Panel</div>
+      <a class="nav-item active" href="#" onclick="showTab('overview')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Resumen
+      </a>
+      <a class="nav-item" href="#" onclick="showTab('companies')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+        Empresas
+        <span class="nav-badge badge badge-blue" id="nav-companies-count">0</span>
+      </a>
+      <a class="nav-item" href="#" onclick="showTab('users')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Usuarios
+        <span class="nav-badge badge badge-blue" id="nav-users-count">0</span>
+      </a>
+      <a class="nav-item" href="#" onclick="showTab('cards')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        Tarjetas NFC
+        <span class="nav-badge badge badge-blue" id="nav-cards-count">0</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="sa-avatar">SA</div>
+        <div>
+          <div class="user-name" id="sa-name">Super Admin</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+      <button onclick="logout()" class="btn btn-ghost btn-sm btn-full mt-2" style="margin-top:8px">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Resumen General</div>
+      <button class="btn btn-primary btn-sm" id="topbar-action" onclick="openNewCompanyModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva Empresa
+      </button>
+    </div>
+
+    <div class="page-body">
+
+      <!-- OVERVIEW -->
+      <div id="tab-overview">
+        <div class="stats-grid stats-grid" style="display:grid;margin-bottom:24px">
+          <div class="stat-card blue"><div class="stat-label">Usuarios totales</div><div class="stat-value" id="st-users">—</div><div class="stat-sub">Registrados</div></div>
+          <div class="stat-card green"><div class="stat-label">Empresas activas</div><div class="stat-value" id="st-companies">—</div><div class="stat-sub">Clientes business</div></div>
+          <div class="stat-card gold"><div class="stat-label">Tarjetas emitidas</div><div class="stat-value" id="st-cards">—</div><div class="stat-sub">NFC físicas</div></div>
+          <div class="stat-card purple"><div class="stat-label">Escaneos totales</div><div class="stat-value" id="st-scans">—</div><div class="stat-sub">Perfiles vistos</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div style="font-weight:700;margin-bottom:14px">Últimas empresas</div>
+            <div id="recent-companies"><div class="text-gray text-sm">Cargando...</div></div>
+          </div>
+          <div class="card">
+            <div style="font-weight:700;margin-bottom:14px">Últimos usuarios</div>
+            <div id="recent-users"><div class="text-gray text-sm">Cargando...</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPANIES -->
+      <div id="tab-companies" style="display:none">
+        <div class="alert info show" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Al crear una empresa puedes asignarle tarjetas NFC y el admin podrá gestionar a sus empleados.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Empresa</th><th>Plan</th><th>Admin</th><th>Empleados</th><th>Tarjetas</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="companies-tbody"><tr><td colspan="7" class="text-center text-gray" style="padding:32px">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="tab-users" style="display:none">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Empresa</th><th>Registro</th><th></th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="6" class="text-center text-gray" style="padding:32px">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div id="tab-cards" style="display:none">
+        <div class="page-header">
+          <div><div class="page-title">Tarjetas NFC</div><div class="page-sub">Genera y asigna tarjetas a empresas o usuarios</div></div>
+          <button class="btn btn-primary" onclick="openGenerateCards()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Generar tarjetas
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Usuario</th><th>Empresa</th><th>UID Tag</th><th>Estado</th><th>Creada</th></tr></thead>
+            <tbody id="cards-tbody"><tr><td colspan="6" class="text-center text-gray" style="padding:32px">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nueva Empresa -->
+<div class="modal-overlay" id="modal-company" onclick="closeModal('modal-company')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Nueva Empresa</div>
+    <div class="modal-sub">Crea el perfil de empresa y asigna un administrador.</div>
+    <div class="field"><label>Nombre de la empresa *</label><input type="text" id="co-name" placeholder="Acme Corp"></div>
+    <div class="field-row">
+      <div class="field"><label>Industria</label><input type="text" id="co-industry" placeholder="Tecnología"></div>
+      <div class="field"><label>Plan</label>
+        <select id="co-plan">
+          <option value="basic">Basic</option>
+          <option value="business" selected>Business</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Email del administrador *</label><input type="email" id="co-admin-email" placeholder="admin@empresa.com"></div>
+    <div class="field"><label>Nombre del administrador</label><input type="text" id="co-admin-name" placeholder="Carlos García"></div>
+    <div class="field"><label>Tarjetas a generar</label><input type="number" id="co-cards" value="10" min="1" max="500"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-company')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createCompany()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        Crear empresa
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Generar Tarjetas -->
+<div class="modal-overlay" id="modal-gen-cards" onclick="closeModal('modal-gen-cards')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Generar Tarjetas NFC</div>
+    <div class="modal-sub">Los códigos se generan automáticamente y puedes asignarlos después.</div>
+    <div class="field"><label>Cantidad de tarjetas</label><input type="number" id="gc-count" value="10" min="1" max="200"></div>
+    <div class="field"><label>Asignar a empresa (opcional)</label>
+      <select id="gc-company"><option value="">— Individual (sin empresa) —</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-gen-cards')">Cancelar</button>
+      <button class="btn btn-primary" onclick="generateCards()">Generar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentUser = null;
+let allCompanies = [];
+
+async function init() {
+  try {
+    currentUser = await requireAuth(['superadmin']);
+    document.getElementById('sa-name').textContent = currentUser.profile?.full_name || currentUser.full_name || 'Admin';
+    document.getElementById('sa-avatar').textContent = (currentUser.profile?.full_name || 'SA').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    await loadAll();
+  } catch(e) { console.error(e); }
+}
+
+async function loadAll() {
+  const [stats, companies, users, cards] = await Promise.all([
+    sbGetStats(), sbGetCompanies(), sbGetAllUsers(), sbGetCards()
+  ]);
+  // Stats
+  document.getElementById('st-users').textContent     = stats.users;
+  document.getElementById('st-companies').textContent = stats.companies;
+  document.getElementById('st-cards').textContent     = stats.cards;
+  document.getElementById('st-scans').textContent     = stats.scans;
+  document.getElementById('nav-companies-count').textContent = stats.companies;
+  document.getElementById('nav-users-count').textContent = stats.users;
+  document.getElementById('nav-cards-count').textContent = stats.cards;
+
+  allCompanies = companies;
+
+  // Recent companies
+  const rc = document.getElementById('recent-companies');
+  rc.innerHTML = companies.slice(0,5).map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="company-logo">${c.name[0]}</div>
+      <div><div style="font-size:13px;font-weight:600">${c.name}</div><div class="text-xs text-gray">${c.plan} · ${c.industry||'—'}</div></div>
+      <span class="badge ${c.active?'badge-green':'badge-red'}" style="margin-left:auto">${c.active?'Activa':'Inactiva'}</span>
+    </div>`).join('') || '<div class="text-gray text-sm">Sin empresas aún</div>';
+
+  // Recent users
+  const ru = document.getElementById('recent-users');
+  ru.innerHTML = users.slice(0,5).map(u=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="user-avatar" style="width:30px;height:30px;font-size:11px">${(u.full_name||u.email||'U').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+      <div><div style="font-size:13px;font-weight:600">${u.full_name||'—'}</div><div class="text-xs text-gray">${u.email}</div></div>
+      <span class="badge badge-${u.role==='superadmin'?'purple':u.role==='company_admin'?'blue':'gray'}" style="margin-left:auto">${u.role||'individual'}</span>
+    </div>`).join('') || '<div class="text-gray text-sm">Sin usuarios aún</div>';
+
+  // Companies table
+  const ct = document.getElementById('companies-tbody');
+  ct.innerHTML = companies.length ? companies.map(c=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="company-logo">${c.name[0]}</div><div><div style="font-weight:600">${c.name}</div><div class="text-xs text-gray">${c.industry||'—'}</div></div></div></td>
+      <td><span class="badge badge-${c.plan==='enterprise'?'purple':c.plan==='business'?'blue':'gray'}">${c.plan}</span></td>
+      <td class="text-sm">${c.profiles?.full_name||'—'}</td>
+      <td class="text-sm">—</td>
+      <td class="text-sm">—</td>
+      <td><span class="badge badge-${c.active?'green':'red'}">${c.active?'Activa':'Inactiva'}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="viewCompany('${c.id}')">Ver</button></td>
+    </tr>`).join('') : '<tr><td colspan="7"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg><h3>Sin empresas</h3><p>Crea tu primera empresa cliente.</p></div></td></tr>';
+
+  // Users table
+  const ut = document.getElementById('users-tbody');
+  ut.innerHTML = users.length ? users.map(u=>`
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="user-avatar" style="width:30px;height:30px;font-size:11px">${(u.full_name||'U').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div><div style="font-weight:600">${u.full_name||'—'}</div></div></td>
+      <td class="text-sm text-gray">${u.email}</td>
+      <td><span class="badge badge-${u.role==='superadmin'?'purple':u.role==='company_admin'?'blue':'gray'}">${u.role||'individual'}</span></td>
+      <td class="text-sm">${u.companies?.name||'—'}</td>
+      <td class="text-sm text-gray">${new Date(u.created_at).toLocaleDateString('es')}</td>
+      <td><button class="btn btn-ghost btn-sm">Ver</button></td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h3>Sin usuarios</h3><p>Aún no hay usuarios registrados.</p></div></td></tr>';
+
+  // Cards table
+  const kd = document.getElementById('cards-tbody');
+  kd.innerHTML = cards.length ? cards.map(c=>`
+    <tr>
+      <td><span style="font-family:monospace;font-size:13px;font-weight:600;color:var(--blue)">${c.code}</span></td>
+      <td class="text-sm">${c.profiles?.full_name||'—'}</td>
+      <td class="text-sm">${c.company_id?'Empresa':'—'}</td>
+      <td><span style="font-family:monospace;font-size:11px;color:var(--gray)">${c.tag_uid||'Sin vincular'}</span></td>
+      <td><span class="badge badge-${c.activated?'green':'gray'}">${c.activated?'Activada':'Pendiente'}</span></td>
+      <td class="text-sm text-gray">${new Date(c.created_at).toLocaleDateString('es')}</td>
+    </tr>`).join('') : '<tr><td colspan="6"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><h3>Sin tarjetas</h3><p>Genera las primeras tarjetas NFC.</p></div></td></tr>';
+
+  // Populate company select
+  const sel = document.getElementById('gc-company');
+  sel.innerHTML = '<option value="">— Individual (sin empresa) —</option>' + companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+}
+
+function showTab(tab) {
+  ['overview','companies','users','cards'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+    document.querySelectorAll('.nav-item').forEach((el,i)=>{
+      if(el.getAttribute('onclick')?.includes("'"+t+"'")) el.classList.toggle('active', t===tab);
+    });
+  });
+  const titles = {overview:'Resumen General',companies:'Empresas',users:'Usuarios',cards:'Tarjetas NFC'};
+  document.getElementById('topbar-title').textContent = titles[tab];
+  const acts = {overview:'Nueva Empresa',companies:'Nueva Empresa',users:'Invitar usuario',cards:'Generar tarjetas'};
+  document.getElementById('topbar-action').textContent = acts[tab];
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openNewCompanyModal(){ openModal('modal-company'); }
+function openGenerateCards(){ openModal('modal-gen-cards'); }
+
+function showToast(msg, type='') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show '+(type||'');
+  setTimeout(()=>t.className='',2500);
+}
+
+async function createCompany() {
+  const name = document.getElementById('co-name').value.trim();
+  const adminEmail = document.getElementById('co-admin-email').value.trim();
+  const adminName = document.getElementById('co-admin-name').value.trim();
+  const plan = document.getElementById('co-plan').value;
+  const cardsCount = parseInt(document.getElementById('co-cards').value)||0;
+  const industry = document.getElementById('co-industry').value.trim();
+  if(!name||!adminEmail){ showToast('Nombre y email son obligatorios','error'); return; }
+  try {
+    const company = await sbCreateCompany({ name, industry, plan, active:true });
+    if(cardsCount>0) await sbGenerateCards(cardsCount, company.id);
+    // Create admin account (send invite in real app)
+    try {
+      await sbSignUp(adminEmail, 'TapCard2025!', { full_name:adminName||adminEmail, role:'company_admin' });
+    } catch(e) { /* might already exist */ }
+    showToast('✓ Empresa creada correctamente','success');
+    closeModal('modal-company');
+    await loadAll();
+  } catch(e) { showToast(e.message||'Error al crear empresa','error'); }
+}
+
+async function generateCards() {
+  const count = parseInt(document.getElementById('gc-count').value)||10;
+  const companyId = document.getElementById('gc-company').value || null;
+  try {
+    const cards = await sbGenerateCards(count, companyId);
+    showToast(`✓ ${cards.length} tarjetas generadas`, 'success');
+    closeModal('modal-gen-cards');
+    await loadAll();
+    showTab('cards');
+  } catch(e) { showToast(e.message||'Error','error'); }
+}
+
+function viewCompany(id) { window.location.href = 'company.html?id='+id; }
+
+async function logout() { await sbSignOut(); window.location.href='login.html'; }
+
+init();
+</script>
+</body>
+</html>

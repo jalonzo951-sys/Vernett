@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel Empresa — TapCard</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+.stats-grid{grid-template-columns:repeat(3,1fr)}
+@media(max-width:700px){.stats-grid{grid-template-columns:1fr}}
+.emp-avatar{width:38px;height:38px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.card-code{font-family:monospace;font-size:13px;font-weight:700;color:var(--blue);background:var(--blue3);padding:4px 10px;border-radius:6px}
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>
+      <span class="sidebar-logo-text">TapCard</span>
+      <span class="sidebar-logo-badge">EMPRESA</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">Gestión</div>
+      <a class="nav-item active" href="#" onclick="showTab('overview')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Resumen</a>
+      <a class="nav-item" href="#" onclick="showTab('employees')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Empleados<span class="nav-badge badge badge-blue" id="nav-emp-count">0</span></a>
+      <a class="nav-item" href="#" onclick="showTab('cards')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Tarjetas<span class="nav-badge badge badge-blue" id="nav-cards-count">0</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="co-avatar">CO</div>
+        <div><div class="user-name" id="co-name">Mi Empresa</div><div class="user-role">Administrador</div></div>
+      </div>
+      <button onclick="logout()" class="btn btn-ghost btn-sm btn-full" style="margin-top:8px">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Panel de Empresa</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddEmployee()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Añadir empleado
+      </button>
+    </div>
+
+    <div class="page-body">
+
+      <!-- OVERVIEW -->
+      <div id="tab-overview">
+        <div class="card" style="background:linear-gradient(135deg,#0052FF,#003DD4);border:none;color:white;margin-bottom:24px;padding:24px 28px">
+          <div style="font-size:11px;font-weight:700;opacity:.7;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Tu empresa</div>
+          <div style="font-size:26px;font-weight:900;margin-bottom:4px" id="company-display-name">—</div>
+          <div style="font-size:14px;opacity:.7" id="company-display-info">—</div>
+        </div>
+        <div class="stats-grid" style="display:grid;margin-bottom:24px;gap:14px">
+          <div class="stat-card"><div class="stat-label">Empleados</div><div class="stat-value text-blue" id="co-st-emps">—</div><div class="stat-sub">Registrados</div></div>
+          <div class="stat-card"><div class="stat-label">Tarjetas activas</div><div class="stat-value" style="color:var(--green)" id="co-st-cards">—</div><div class="stat-sub">NFC asignadas</div></div>
+          <div class="stat-card"><div class="stat-label">Escaneos</div><div class="stat-value" style="color:var(--purple)" id="co-st-scans">—</div><div class="stat-sub">Este mes</div></div>
+        </div>
+        <div class="card">
+          <div style="font-weight:700;margin-bottom:16px">Empleados recientes</div>
+          <div id="recent-employees"></div>
+        </div>
+      </div>
+
+      <!-- EMPLOYEES -->
+      <div id="tab-employees" style="display:none">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Empleado</th><th>Email</th><th>Departamento</th><th>Tarjeta</th><th>Perfil</th><th></th></tr></thead>
+            <tbody id="employees-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CARDS -->
+      <div id="tab-cards" style="display:none">
+        <div class="alert info show" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Comparte el código de la tarjeta con tu empleado. Al escanear el tag NFC, podrá registrarse y completar su perfil.
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Código</th><th>Empleado asignado</th><th>Tag NFC</th><th>Perfil</th><th>Estado</th></tr></thead>
+            <tbody id="co-cards-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Añadir empleado -->
+<div class="modal-overlay" id="modal-emp" onclick="closeModal('modal-emp')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">Añadir Empleado</div>
+    <div class="modal-sub">Se enviará una invitación al empleado para que cree su cuenta y complete su perfil.</div>
+    <div class="field-row">
+      <div class="field"><label>Nombre *</label><input type="text" id="em-name" placeholder="Carlos"></div>
+      <div class="field"><label>Apellidos</label><input type="text" id="em-last" placeholder="García"></div>
+    </div>
+    <div class="field"><label>Email *</label><input type="email" id="em-email" placeholder="carlos@empresa.com"></div>
+    <div class="field"><label>Cargo</label><input type="text" id="em-title" placeholder="Gerente de Ventas"></div>
+    <div class="field"><label>Departamento</label><input type="text" id="em-dept" placeholder="Comercial"></div>
+    <div class="field"><label>Asignar tarjeta NFC</label>
+      <select id="em-card"><option value="">— Sin tarjeta por ahora —</option></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-emp')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addEmployee()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        Añadir empleado
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let currentUser = null, companyData = null, companyCards = [], companyEmployees = [];
+
+async function init() {
+  try {
+    currentUser = await requireAuth(['company_admin','superadmin']);
+    const name = currentUser.profile?.full_name || currentUser.full_name || 'Admin';
+    document.getElementById('co-name').textContent = name;
+    document.getElementById('co-avatar').textContent = name.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    await loadCompany();
+  } catch(e) { console.error(e); }
+}
+
+async function loadCompany() {
+  const urlId = new URLSearchParams(window.location.search).get('id');
+  const companies = await sbGetCompanies();
+  companyData = urlId ? companies.find(c=>c.id===urlId) : companies[0];
+  if(!companyData){ document.getElementById('company-display-name').textContent='Sin empresa asignada'; return; }
+
+  document.getElementById('company-display-name').textContent = companyData.name;
+  document.getElementById('company-display-info').textContent = (companyData.industry||'') + ' · Plan ' + companyData.plan;
+  document.title = companyData.name + ' — TapCard';
+
+  companyCards = await sbGetCards({ company_id: companyData.id });
+  // Employees = users assigned to this company
+  const allUsers = await sbGetAllUsers();
+  companyEmployees = allUsers.filter(u => u.company_id === companyData.id || u.role === 'employee');
+
+  renderAll();
+}
+
+function renderAll() {
+  const empCount = companyEmployees.length;
+  const cardActive = companyCards.filter(c=>c.activated).length;
+  document.getElementById('co-st-emps').textContent = empCount;
+  document.getElementById('co-st-cards').textContent = cardActive + '/' + companyCards.length;
+  document.getElementById('co-st-scans').textContent = '—';
+  document.getElementById('nav-emp-count').textContent = empCount;
+  document.getElementById('nav-cards-count').textContent = companyCards.length;
+
+  // Recent employees
+  const re = document.getElementById('recent-employees');
+  re.innerHTML = companyEmployees.slice(0,5).map(u=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div class="emp-avatar">${(u.full_name||'E').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${u.full_name||'—'}</div><div class="text-xs text-gray">${u.email}</div></div>
+      <a href="profile.html?id=${u.id}" target="_blank" class="btn btn-ghost btn-sm">Ver perfil</a>
+    </div>`).join('') || '<div class="empty-state" style="padding:32px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:40px;height:40px;color:#D1D5DB;margin-bottom:12px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h3>Sin empleados</h3><p>Añade tu primer empleado.</p></div>';
+
+  // Employees table
+  const et = document.getElementById('employees-tbody');
+  et.innerHTML = companyEmployees.length ? companyEmployees.map(u=>{
+    const card = companyCards.find(c=>c.user_id===u.id);
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="emp-avatar" style="width:32px;height:32px;font-size:11px">${(u.full_name||'E').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase()}</div><div style="font-weight:600">${u.full_name||'—'}</div></div></td>
+      <td class="text-sm text-gray">${u.email}</td>
+      <td class="text-sm">${u.department||'—'}</td>
+      <td>${card?`<span class="card-code">${card.code}</span>`:'<span class="text-gray text-sm">Sin tarjeta</span>'}</td>
+      <td><a href="profile.html?card=${card?.id||u.id}" target="_blank" class="btn btn-ghost btn-sm">Ver perfil</a></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeEmployee('${u.id}')">Quitar</button></td>
+    </tr>`;}).join('') : '<tr><td colspan="6"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h3>Sin empleados</h3><p>Añade empleados para gestionar sus perfiles NFC.</p><button class="btn btn-primary" onclick="openAddEmployee()">Añadir empleado</button></div></td></tr>';
+
+  // Cards table
+  const ct = document.getElementById('co-cards-tbody');
+  ct.innerHTML = companyCards.length ? companyCards.map(c=>{
+    const emp = companyEmployees.find(u=>u.id===c.user_id);
+    return `<tr>
+      <td><span class="card-code">${c.code}</span></td>
+      <td class="text-sm">${emp?.full_name||'<span class="text-gray">Sin asignar</span>'}</td>
+      <td><span style="font-family:monospace;font-size:11px;color:var(--gray)">${c.tag_uid||'—'}</span></td>
+      <td>${c.card_profiles?`<a href="profile.html?id=${c.id}" target="_blank" class="btn btn-ghost btn-sm">Ver</a>`:'<span class="text-gray text-sm">Sin perfil</span>'}</td>
+      <td><span class="badge badge-${c.activated?'green':'gray'}">${c.activated?'Activa':'Pendiente'}</span></td>
+    </tr>`;}).join('') : '<tr><td colspan="5"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg><h3>Sin tarjetas</h3><p>Contacta al administrador para solicitar tarjetas NFC.</p></div></td></tr>';
+
+  // Card select in modal
+  const sel = document.getElementById('em-card');
+  const free = companyCards.filter(c=>!c.user_id);
+  sel.innerHTML = '<option value="">— Sin tarjeta por ahora —</option>' + free.map(c=>`<option value="${c.id}">${c.code}</option>`).join('');
+}
+
+function showTab(tab) {
+  ['overview','employees','cards'].forEach(t=>{
+    document.getElementById('tab-'+t).style.display = t===tab ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active', el.getAttribute('onclick')?.includes("'"+tab+"'"));
+  });
+  const titles={overview:'Panel de Empresa',employees:'Empleados',cards:'Tarjetas NFC'};
+  document.getElementById('topbar-title').textContent = titles[tab];
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openAddEmployee(){ openModal('modal-emp'); }
+
+function showToast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show '+(type||'');setTimeout(()=>t.className='',2500);}
+
+async function addEmployee() {
+  const name = document.getElementById('em-name').value.trim();
+  const last = document.getElementById('em-last').value.trim();
+  const email = document.getElementById('em-email').value.trim();
+  const title = document.getElementById('em-title').value.trim();
+  const dept = document.getElementById('em-dept').value.trim();
+  const cardId = document.getElementById('em-card').value;
+  if(!name||!email){showToast('Nombre y email son obligatorios','error');return;}
+  try {
+    // Create employee account
+    const fullName = [name,last].filter(Boolean).join(' ');
+    await sbSignUp(email,'TapCard2025!',{full_name:fullName,role:'employee',company_id:companyData?.id,department:dept,title});
+    showToast('✓ Empleado añadido. Recibirá un email para configurar su contraseña.','success');
+    closeModal('modal-emp');
+    await loadCompany();
+  } catch(e){showToast(e.message||'Error','error');}
+}
+
+function removeEmployee(id){if(confirm('¿Quitar este empleado?'))showToast('Empleado eliminado');}
+async function logout(){await sbSignOut();window.location.href='login.html';}
+
+init();
+</script>
+</body>
+</html>

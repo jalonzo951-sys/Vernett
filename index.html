@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0052FF">
+<title>TapCard — La tarjeta de presentación inteligente</title>
+<link rel="manifest" href="manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#0052FF;--blue2:#003DD4;--blue3:#EEF3FF;
+  --dark:#0A0E1A;--gray:#6B7280;--light:#F8FAFF;
+  --border:#E5E9F2;--white:#fff;
+  --green:#10B981;--gold:#F59E0B;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--white);color:var(--dark);overflow-x:hidden}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+  padding:0 24px;height:64px;display:flex;align-items:center;gap:16px;
+}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;flex:1}
+.nav-logo-icon{width:34px;height:34px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center}
+.nav-logo-icon svg{width:19px;height:19px}
+.nav-logo-text{font-size:17px;font-weight:900;color:var(--dark);letter-spacing:-0.4px}
+.nav-links{display:flex;gap:28px;align-items:center}
+.nav-links a{font-size:14px;font-weight:500;color:var(--gray);text-decoration:none;transition:color .15s}
+.nav-links a:hover{color:var(--dark)}
+.nav-ctas{display:flex;gap:10px;align-items:center}
+.btn-nav-ghost{padding:8px 18px;border-radius:9px;border:1.5px solid var(--border);background:transparent;font-size:14px;font-weight:600;color:var(--dark);cursor:pointer;text-decoration:none;font-family:'Inter';transition:all .15s}
+.btn-nav-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-nav-solid{padding:8px 20px;border-radius:9px;background:var(--blue);font-size:14px;font-weight:700;color:white;cursor:pointer;text-decoration:none;border:none;font-family:'Inter';transition:all .15s;box-shadow:0 2px 10px rgba(0,82,255,.25)}
+.btn-nav-solid:hover{background:var(--blue2)}
+@media(max-width:640px){.nav-links{display:none}}
+
+/* ── HERO ── */
+.hero{
+  padding:140px 24px 100px;text-align:center;
+  background:linear-gradient(180deg,#EEF3FF 0%,#ffffff 60%);
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);
+  width:800px;height:800px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,82,255,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:white;border:1.5px solid #D0DDFF;border-radius:30px;
+  padding:6px 16px;margin-bottom:28px;font-size:13px;font-weight:600;color:var(--blue);
+  box-shadow:0 2px 12px rgba(0,82,255,.1);
+}
+.hero-badge-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:blink 1.8s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{
+  font-size:clamp(38px,7vw,72px);font-weight:900;line-height:1.06;
+  letter-spacing:-2px;margin-bottom:24px;
+}
+.hero h1 span{color:var(--blue)}
+.hero-sub{font-size:clamp(16px,2vw,20px);color:var(--gray);max-width:540px;margin:0 auto 44px;line-height:1.7}
+.hero-ctas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:60px}
+.btn-primary{
+  padding:16px 36px;border-radius:14px;background:var(--blue);color:white;
+  font-size:16px;font-weight:800;text-decoration:none;display:inline-flex;align-items:center;gap:9px;
+  box-shadow:0 6px 24px rgba(0,82,255,.32);transition:all .2s;border:none;cursor:pointer;font-family:'Inter';
+}
+.btn-primary:hover{background:var(--blue2);transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,82,255,.35)}
+.btn-primary svg{width:18px;height:18px}
+.btn-secondary{
+  padding:16px 36px;border-radius:14px;background:white;color:var(--dark);
+  font-size:16px;font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:9px;
+  border:1.5px solid var(--border);transition:all .2s;box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
+
+/* Social proof */
+.hero-social{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--gray)}
+.avatars{display:flex}
+.avatars .av{
+  width:32px;height:32px;border-radius:50%;border:2px solid white;
+  margin-left:-8px;first-child:margin-left:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;
+}
+.stars{color:#F59E0B;letter-spacing:-1px}
+
+/* Phone mockup */
+.hero-visual{
+  margin-top:60px;position:relative;display:flex;justify-content:center;
+}
+.phone-wrap{
+  width:260px;border-radius:44px;background:var(--dark);
+  padding:12px;box-shadow:0 40px 80px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.05);
+  position:relative;
+}
+.phone-screen{border-radius:34px;overflow:hidden;background:white}
+.phone-cover{height:130px;background:linear-gradient(160deg,#0052FF,#003DD4);position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:0}
+.phone-avatar{
+  width:64px;height:64px;border-radius:50%;background:white;
+  border:3px solid white;display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:900;color:var(--blue);margin-bottom:-32px;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+}
+.phone-body{padding:38px 14px 14px;text-align:center}
+.phone-name{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:3px}
+.phone-job{font-size:11px;color:var(--gray);margin-bottom:14px}
+.phone-save{
+  width:100%;padding:10px;border-radius:10px;background:var(--blue);
+  color:white;font-size:12px;font-weight:700;border:none;margin-bottom:10px;
+}
+.phone-row{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border:1px solid var(--border);border-radius:10px;margin-bottom:8px;text-align:left;
+}
+.phone-row-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.phone-row-icon svg{width:13px;height:13px}
+.phone-row-lbl{font-size:8px;font-weight:700;color:var(--gray);text-transform:uppercase}
+.phone-row-val{font-size:11px;font-weight:500;color:var(--dark)}
+.phone-soc{display:flex;gap:8px;margin-top:4px}
+.phone-soc-btn{flex:1;padding:7px 4px;border:1px solid var(--border);border-radius:8px;font-size:9px;font-weight:700;color:var(--gray);text-align:center}
+
+/* Floating badges */
+.float-badge{
+  position:absolute;background:white;border-radius:14px;padding:10px 14px;
+  box-shadow:0 8px 28px rgba(0,0,0,.12);font-size:12px;font-weight:700;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+}
+.fb-left{left:-90px;top:120px}
+.fb-right{right:-90px;top:180px}
+.fb-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+@media(max-width:640px){.fb-left,.fb-right{display:none}}
+
+/* ── LOGOS ── */
+.logos{padding:40px 24px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--light)}
+.logos-inner{max-width:900px;margin:0 auto;text-align:center}
+.logos-label{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:24px}
+.logos-row{display:flex;align-items:center;justify-content:center;gap:40px;flex-wrap:wrap}
+.logo-pill{
+  padding:10px 22px;border-radius:30px;border:1.5px solid var(--border);
+  font-size:15px;font-weight:800;color:#9CA3AF;background:white;
+}
+
+/* ── HOW IT WORKS ── */
+.section{padding:100px 24px;max-width:1100px;margin:0 auto}
+.section-label{font-size:12px;font-weight:800;color:var(--blue);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;text-align:center}
+.section-title{font-size:clamp(28px,4vw,46px);font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:16px;line-height:1.1}
+.section-sub{font-size:16px;color:var(--gray);text-align:center;max-width:520px;margin:0 auto 60px;line-height:1.7}
+
+.steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+@media(max-width:700px){.steps-row{grid-template-columns:1fr}}
+.step-card{text-align:center;padding:32px 24px}
+.step-num{
+  width:52px;height:52px;border-radius:16px;background:var(--blue3);
+  border:1.5px solid #D0DDFF;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;font-size:22px;font-weight:900;color:var(--blue);
+}
+.step-title{font-size:18px;font-weight:800;margin-bottom:10px;color:var(--dark)}
+.step-desc{font-size:14px;color:var(--gray);line-height:1.7}
+.step-arrow{font-size:28px;color:#D1D5DB;display:flex;align-items:center;justify-content:center;padding-top:52px}
+@media(max-width:700px){.step-arrow{display:none}}
+
+/* ── FEATURES ── */
+.features-wrap{background:var(--light);padding:80px 24px}
+.features-grid{max-width:1000px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+@media(max-width:640px){.features-grid{grid-template-columns:1fr}}
+.feature-card{
+  background:white;border:1.5px solid var(--border);border-radius:20px;
+  padding:28px;transition:all .2s;
+}
+.feature-card:hover{border-color:#D0DDFF;box-shadow:0 8px 30px rgba(0,82,255,.08);transform:translateY(-2px)}
+.feat-icon{
+  width:48px;height:48px;border-radius:14px;background:var(--blue3);
+  display:flex;align-items:center;justify-content:center;margin-bottom:16px;
+}
+.feat-icon svg{width:24px;height:24px;color:var(--blue)}
+.feat-title{font-size:17px;font-weight:800;color:var(--dark);margin-bottom:8px}
+.feat-desc{font-size:14px;color:var(--gray);line-height:1.65}
+
+/* ── PRICING ── */
+.pricing-wrap{padding:100px 24px;max-width:900px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:60px}
+@media(max-width:640px){.pricing-grid{grid-template-columns:1fr}}
+.price-card{
+  border:1.5px solid var(--border);border-radius:24px;padding:36px 32px;
+  background:white;transition:all .2s;position:relative;overflow:hidden;
+}
+.price-card.featured{
+  border-color:var(--blue);background:var(--dark);
+  box-shadow:0 20px 60px rgba(0,82,255,.2);
+}
+.price-badge{
+  position:absolute;top:20px;right:20px;
+  background:var(--blue);color:white;border-radius:20px;
+  padding:4px 12px;font-size:11px;font-weight:800;
+}
+.price-name{font-size:14px;font-weight:700;color:var(--gray);margin-bottom:8px}
+.price-card.featured .price-name{color:rgba(255,255,255,.6)}
+.price-amount{font-size:48px;font-weight:900;letter-spacing:-2px;color:var(--dark);margin-bottom:4px}
+.price-card.featured .price-amount{color:white}
+.price-period{font-size:13px;color:var(--gray);margin-bottom:28px}
+.price-card.featured .price-period{color:rgba(255,255,255,.5)}
+.price-features{list-style:none;margin-bottom:32px}
+.price-features li{
+  display:flex;align-items:center;gap:10px;
+  font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid var(--border);
+}
+.price-card.featured .price-features li{color:rgba(255,255,255,.75);border-color:rgba(255,255,255,.1)}
+.price-features li::before{content:'✓';color:var(--green);font-weight:900;flex-shrink:0}
+.btn-price{
+  width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:800;
+  cursor:pointer;border:none;font-family:'Inter';text-decoration:none;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;
+}
+.btn-price-solid{background:var(--blue);color:white;box-shadow:0 4px 16px rgba(0,82,255,.3)}
+.btn-price-solid:hover{background:var(--blue2)}
+.btn-price-outline{background:white;color:var(--dark);border:1.5px solid var(--border)}
+.btn-price-outline:hover{border-color:var(--blue);color:var(--blue)}
+.price-card.featured .btn-price-outline{background:transparent;color:white;border-color:rgba(255,255,255,.3)}
+
+/* ── TESTIMONIALS ── */
+.testi-wrap{background:var(--light);padding:80px 24px}
+.testi-grid{max-width:900px;margin:40px auto 0;display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:700px){.testi-grid{grid-template-columns:1fr}}
+.testi-card{background:white;border:1.5px solid var(--border);border-radius:18px;padding:24px}
+.testi-stars{color:#F59E0B;font-size:14px;margin-bottom:12px}
+.testi-text{font-size:14px;color:var(--gray);line-height:1.7;margin-bottom:16px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:10px}
+.testi-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:white;flex-shrink:0}
+.testi-name{font-size:13px;font-weight:700;color:var(--dark)}
+.testi-role{font-size:11.5px;color:var(--gray)}
+
+/* ── CTA FINAL ── */
+.cta-section{
+  padding:100px 24px;text-align:center;
+  background:linear-gradient(160deg,var(--dark) 0%,#0F1A3A 100%);
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,82,255,.25) 0%,transparent 70%);
+}
+.cta-section h2{font-size:clamp(28px,5vw,52px);font-weight:900;color:white;letter-spacing:-1px;margin-bottom:16px;position:relative}
+.cta-section p{font-size:17px;color:rgba(255,255,255,.6);margin-bottom:40px;position:relative}
+.cta-section .btn-primary{position:relative}
+
+/* ── FOOTER ── */
+footer{background:var(--dark);padding:48px 24px 32px;color:rgba(255,255,255,.5)}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-top{display:flex;gap:48px;flex-wrap:wrap;margin-bottom:40px;padding-bottom:40px;border-bottom:1px solid rgba(255,255,255,.08)}
+.footer-brand{flex:1;min-width:220px}
+.footer-logo{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.footer-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.footer-logo-icon svg{width:17px;height:17px}
+.footer-logo-text{font-size:16px;font-weight:900;color:white}
+.footer-tagline{font-size:13px;line-height:1.7;max-width:220px}
+.footer-col h4{font-size:12px;font-weight:800;color:white;letter-spacing:1px;text-transform:uppercase;margin-bottom:16px}
+.footer-col a{display:block;font-size:13px;color:rgba(255,255,255,.5);text-decoration:none;margin-bottom:10px;transition:color .15s}
+.footer-col a:hover{color:white}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.footer-copy{font-size:12.5px}
+.footer-legal{display:flex;gap:20px}
+.footer-legal a{font-size:12.5px;color:rgba(255,255,255,.4);text-decoration:none}
+.footer-legal a:hover{color:white}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="1.5" fill="white" stroke="none"/></svg>
+    </div>
+    <span class="nav-logo-text">TapCard</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Funciones</a>
+    <a href="#how">Cómo funciona</a>
+    <a href="#pricing">Precios</a>
+  </div>
+  <div class="nav-ctas">
+    <a href="login.html" class="btn-nav-ghost">Iniciar sesión</a>
+    <a href="login.html?tab=register" class="btn-nav-solid">Crear cuenta</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <div class="hero-badge-dot"></div>
+    La tarjeta digital que abre puertas
+  </div>
+  <h1>Tu tarjeta de<br><span>negocios inteligente</span></h1>
+  <p class="hero-sub">Un solo toque con tu tarjeta NFC y quien sea verá tu perfil completo en su móvil. Sin apps. Sin papel. Sin límites.</p>
+  <div class="hero-ctas">
+    <a href="login.html?tab=register" class="btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg>
+      Quiero mi TapCard
+    </a>
+    <a href="#how" class="btn-secondary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      Ver cómo funciona
+    </a>
+  </div>
+  <div class="hero-social">
+    <div class="avatars">
+      <div class="av" style="background:#0052FF;margin-left:0">CM</div>
+      <div class="av" style="background:#7C3AED">AM</div>
+      <div class="av" style="background:#059669">JR</div>
+      <div class="av" style="background:#DC2626">LP</div>
+    </div>
+    <div class="stars">★★★★★</div>
+    <span>+500 profesionales ya usan TapCard</span>
+  </div>
+
+  <!-- Phone mockup -->
+  <div class="hero-visual">
+    <div style="position:relative">
+      <div class="phone-wrap">
+        <div class="phone-screen">
+          <div class="phone-cover">
+            <div class="phone-avatar">CM</div>
+          </div>
+          <div class="phone-body">
+            <div class="phone-name">Carlos Martínez</div>
+            <div class="phone-job">CEO · TechCorp S.L.</div>
+            <button class="phone-save">👤 Guardar contacto</button>
+            <div class="phone-row">
+              <div class="phone-row-icon" style="background:#EEF3FF">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#0052FF" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div><div class="phone-row-lbl">Email</div><div class="phone-row-val">carlos@techcorp.es</div></div>
+            </div>
+            <div class="phone-row">
+              <div class="phone-row-icon" style="background:#ECFDF5">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 5 12.28 19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91A16 16 0 0 0 14 15.91l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div><div class="phone-row-lbl">Teléfono</div><div class="phone-row-val">+34 612 345 678</div></div>
+            </div>
+            <div class="phone-soc">
+              <div class="phone-soc-btn" style="color:#0A66C2">in LinkedIn</div>
+              <div class="phone-soc-btn" style="color:#E1306C">📸 Insta</div>
+              <div class="phone-soc-btn" style="color:#25D366">W WA</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Floating badges -->
+      <div class="float-badge fb-left">
+        <div class="fb-icon" style="background:#ECFDF5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div><div style="font-size:11px;color:#6B7280;font-weight:600">Contacto guardado</div><div style="color:#0A0E1A">Carlos Martínez</div></div>
+      </div>
+      <div class="float-badge fb-right">
+        <div class="fb-icon" style="background:#EEF3FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0052FF" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>
+        <div><div style="font-size:11px;color:#6B7280;font-weight:600">Tag NFC detectado</div><div style="color:#0A0E1A">Abriendo perfil...</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos">
+  <div class="logos-inner">
+    <div class="logos-label">Usada por profesionales de</div>
+    <div class="logos-row">
+      <div class="logo-pill">🏦 Banca</div>
+      <div class="logo-pill">🏢 Consultoría</div>
+      <div class="logo-pill">💊 Salud</div>
+      <div class="logo-pill">🏗️ Inmobiliaria</div>
+      <div class="logo-pill">⚖️ Legal</div>
+      <div class="logo-pill">🎨 Diseño</div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how">
+  <div class="section-label">Cómo funciona</div>
+  <div class="section-title">En 3 pasos, estás listo</div>
+  <div class="section-sub">Sin instalaciones. Sin complicaciones. Tu nueva tarjeta funciona desde el primer día.</div>
+  <div class="steps-row">
+    <div class="step-card">
+      <div class="step-num">1</div>
+      <div class="step-title">Pide tu TapCard</div>
+      <div class="step-desc">Elige tu plan y recibe tu tarjeta NFC en casa. Diseño premium, duradera y con tu nombre.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">2</div>
+      <div class="step-title">Configura tu perfil</div>
+      <div class="step-desc">Entra a tu cuenta, sube tu foto y rellena tus datos en 2 minutos. Puedes editar cuando quieras.</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">3</div>
+      <div class="step-title">Comparte con un toque</div>
+      <div class="step-desc">Acerca tu TapCard a cualquier móvil. Se abre tu perfil instantáneamente. Sin apps necesarias.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<div class="features-wrap" id="features">
+  <div class="section-label" style="text-align:center">Por qué TapCard</div>
+  <div class="section-title">Todo lo que necesitas</div>
+  <div class="section-sub">Una tarjeta que hace más que imprimir tu nombre.</div>
+  <div class="features-grid" style="max-width:900px;margin:0 auto">
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/></svg></div>
+      <div class="feat-title">Tecnología NFC</div>
+      <div class="feat-desc">Un toque y tu perfil se abre en cualquier iPhone o Android. Sin descargar nada, sin escanear QR.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="feat-title">Perfil profesional</div>
+      <div class="feat-desc">Foto, cargo, empresa, email, teléfono, LinkedIn, Instagram, WhatsApp y más en una sola página.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></div>
+      <div class="feat-title">Editable en tiempo real</div>
+      <div class="feat-desc">Cambia tu información cuando quieras desde tu panel. Los cambios se reflejan de inmediato para todos.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+      <div class="feat-title">Guardar contacto .vcf</div>
+      <div class="feat-desc">Quien recibe tu tarjeta puede guardarte en su agenda con un toque, incluyendo tu foto profesional.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="feat-title">Analítica de visitas</div>
+      <div class="feat-desc">Sabe cuántas veces han visto tu perfil, desde qué ciudad y en qué momento del día.</div>
+    </div>
+    <div class="feature-card">
+      <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="feat-title">Eco-friendly</div>
+      <div class="feat-desc">Una sola tarjeta para siempre. Sin re-imprimir, sin desperdiciar papel. Bueno para ti y para el planeta.</div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<section class="pricing-wrap" id="pricing">
+  <div class="section-label" style="text-align:center">Precios</div>
+  <div class="section-title">Simple y transparente</div>
+  <div class="section-sub">Sin sorpresas. Sin comisiones ocultas. Elige el plan que se adapta a ti.</div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-name">PERSONAL</div>
+      <div class="price-amount">€29</div>
+      <div class="price-period">pago único · tarjeta incluida</div>
+      <ul class="price-features">
+        <li>1 tarjeta NFC premium</li>
+        <li>Perfil profesional completo</li>
+        <li>Foto + redes sociales</li>
+        <li>Guardar contacto (.vcf)</li>
+        <li>Edición ilimitada</li>
+      </ul>
+      <a href="login.html?tab=register" class="btn-price btn-price-outline">Empezar →</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-badge">⭐ Popular</div>
+      <div class="price-name">BUSINESS</div>
+      <div class="price-amount" style="color:white">€49</div>
+      <div class="price-period">pago único · todo incluido</div>
+      <ul class="price-features">
+        <li>1 tarjeta NFC premium</li>
+        <li>Perfil con logo de empresa</li>
+        <li>Analítica de visitas</li>
+        <li>Múltiples links y redes</li>
+        <li>Soporte prioritario</li>
+        <li>Dominio personalizado</li>
+      </ul>
+      <a href="login.html?tab=register" class="btn-price btn-price-solid">Quiero el Business →</a>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<div class="testi-wrap">
+  <div class="section-label" style="text-align:center">Testimonios</div>
+  <div class="section-title">Lo que dicen nuestros clientes</div>
+  <div class="testi-grid">
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"La mejor inversión para mi negocio. En eventos doy mi tarjeta y en segundos tienen todos mis datos. Increíble."</div>
+      <div class="testi-author">
+        <div class="testi-av" style="background:#0052FF">CM</div>
+        <div><div class="testi-name">Carlos M.</div><div class="testi-role">CEO · TechStart</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"Dejé de gastar dinero en tarjetas de papel que siempre quedan desactualizadas. TapCard es el futuro."</div>
+      <div class="testi-author">
+        <div class="testi-av" style="background:#7C3AED">AM</div>
+        <div><div class="testi-name">Ana M.</div><div class="testi-role">Directora Comercial</div></div>
+      </div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-stars">★★★★★</div>
+      <div class="testi-text">"En ferias de negocios me preguntan cómo lo hago. La gente alucina cuando ve que no necesitan descargar nada."</div>
+      <div class="testi-author">
+        <div class="testi-av" style="background:#059669">JR</div>
+        <div><div class="testi-name">Javier R.</div><div class="testi-role">Consultor Financiero</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA FINAL -->
+<section class="cta-section">
+  <h2>¿Listo para dar el salto?</h2>
+  <p>Únete a cientos de profesionales que ya han modernizado su networking.</p>
+  <a href="login.html?tab=register" class="btn-primary" style="margin:0 auto">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg>
+    Crear mi TapCard ahora
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>
+          <span class="footer-logo-text">TapCard</span>
+        </div>
+        <div class="footer-tagline">La tarjeta de negocios inteligente que comparte tu perfil con un solo toque.</div>
+      </div>
+      <div class="footer-col">
+        <h4>Producto</h4>
+        <a href="#features">Funciones</a>
+        <a href="#pricing">Precios</a>
+        <a href="#how">Cómo funciona</a>
+      </div>
+      <div class="footer-col">
+        <h4>Cuenta</h4>
+        <a href="login.html">Iniciar sesión</a>
+        <a href="login.html?tab=register">Crear cuenta</a>
+        <a href="dashboard.html">Mi panel</a>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <a href="#">Privacidad</a>
+        <a href="#">Términos de uso</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2025 TapCard. Todos los derechos reservados.</div>
+      <div class="footer-legal">
+        <a href="#">Privacidad</a>
+        <a href="#">Términos</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'});}
+  });
+});
+// Redirect if logged in
+const user=localStorage.getItem('tapcard_user');
+if(user) {
+  document.querySelectorAll('a[href="login.html?tab=register"], .btn-nav-solid').forEach(el=>{
+    if(el.href?.includes('register')) el.href='dashboard.html';
+  });
+}
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

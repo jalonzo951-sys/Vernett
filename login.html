@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0052FF">
+<title>Acceder — TapCard</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+body{display:flex;min-height:100vh;background:var(--light)}
+.auth-left{flex:1;background:linear-gradient(160deg,#0052FF,#0033BB);display:flex;flex-direction:column;justify-content:center;padding:60px 48px;position:relative;overflow:hidden}
+.auth-left::before{content:'';position:absolute;top:-120px;right:-80px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.06)}
+.auth-left::after{content:'';position:absolute;bottom:-80px;left:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.04)}
+.al-logo{display:flex;align-items:center;gap:10px;margin-bottom:52px;position:relative}
+.al-icon{width:38px;height:38px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center}
+.al-icon svg{width:20px;height:20px}
+.al-name{font-size:20px;font-weight:900;color:white}
+.al-h{font-size:36px;font-weight:900;color:white;line-height:1.1;letter-spacing:-.5px;margin-bottom:18px;position:relative}
+.al-p{font-size:15px;color:rgba(255,255,255,.7);line-height:1.7;max-width:320px;position:relative}
+.al-feats{margin-top:44px;display:flex;flex-direction:column;gap:14px;position:relative}
+.al-feat{display:flex;align-items:center;gap:12px;font-size:14px;color:rgba(255,255,255,.85)}
+.al-feat-icon{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.al-feat-icon svg{width:15px;height:15px}
+@media(max-width:768px){.auth-left{display:none}}
+.auth-right{width:460px;flex-shrink:0;background:white;display:flex;flex-direction:column;justify-content:center;padding:48px 40px;overflow-y:auto}
+@media(max-width:768px){.auth-right{width:100%;padding:32px 22px}}
+.mob-logo{display:none;align-items:center;gap:9px;margin-bottom:32px}
+.mob-logo-icon{width:32px;height:32px;background:var(--blue);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.mob-logo-icon svg{width:17px;height:17px}
+.mob-logo span{font-size:17px;font-weight:900;color:var(--dark)}
+@media(max-width:768px){.mob-logo{display:flex}}
+.tabs{display:flex;background:#F3F4F6;border-radius:12px;padding:4px;margin-bottom:28px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;color:var(--gray);border:none;background:transparent;font-family:'Inter'}
+.tab.active{background:white;color:var(--dark);box-shadow:0 1px 6px rgba(0,0,0,.1)}
+.auth-title{font-size:24px;font-weight:900;color:var(--dark);margin-bottom:5px;letter-spacing:-.3px}
+.auth-sub{font-size:13.5px;color:var(--gray);margin-bottom:24px;line-height:1.6}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:46px}
+.pw-eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9CA3AF;padding:4px;display:flex}
+.pw-eye svg{width:17px;height:17px}
+.pw-strength{height:3px;border-radius:2px;margin-top:6px;background:#E5E9F2;overflow:hidden}
+.pw-strength-fill{height:100%;border-radius:2px;transition:all .3s;width:0%}
+.pw-strength-lbl{font-size:10.5px;margin-top:2px}
+.terms-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:18px}
+.chk{width:18px;height:18px;border:1.5px solid var(--border);border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:2px}
+.chk.on{background:var(--blue);border-color:var(--blue)}
+.chk.on::after{content:'✓';color:white;font-size:11px;font-weight:900}
+.terms-txt{font-size:12.5px;color:var(--gray);line-height:1.6}
+.terms-txt a{color:var(--blue);text-decoration:none}
+.forgot{float:right;font-size:12px;color:var(--blue);text-decoration:none;font-weight:600}
+.footer-note{text-align:center;margin-top:22px;font-size:13px;color:var(--gray)}
+.footer-note a{color:var(--blue);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script>(async()=>{const u=await sbGetUser();if(u){const r=u.profile?.role||u.role||'individual';window.location.href=r==='superadmin'?'superadmin.html':r==='company_admin'?'company.html':'dashboard.html';}})();</script>
+
+<div class="auth-left">
+  <div class="al-logo">
+    <div class="al-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#0052FF" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><circle cx="12" cy="12" r="1.5" fill="#0052FF" stroke="none"/></svg></div>
+    <span class="al-name">TapCard</span>
+  </div>
+  <div class="al-h">Tu perfil profesional.<br>Con un solo toque.</div>
+  <div class="al-p">Gestiona tu tarjeta digital NFC desde cualquier dispositivo. Actualiza tus datos en segundos.</div>
+  <div class="al-feats">
+    <div class="al-feat"><div class="al-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>Perfil NFC instantáneo</div>
+    <div class="al-feat"><div class="al-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></div>Editable en tiempo real</div>
+    <div class="al-feat"><div class="al-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>Perfiles empresariales</div>
+    <div class="al-feat"><div class="al-feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>Analítica de visitas</div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="mob-logo">
+    <div class="mob-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/></svg></div>
+    <span>TapCard</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-in" onclick="switchTab('in')">Iniciar sesión</button>
+    <button class="tab" id="tab-up" onclick="switchTab('up')">Crear cuenta</button>
+  </div>
+
+  <div class="alert" id="alert">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    <span id="alert-msg"></span>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="f-in">
+    <div class="auth-title">Bienvenido de nuevo</div>
+    <div class="auth-sub">Accede a tu panel TapCard.</div>
+    <div class="field" id="fi-email-f">
+      <label>Email</label>
+      <input type="email" id="fi-email" placeholder="tu@email.com" autocomplete="email" inputmode="email">
+      <div class="err">Email inválido</div>
+    </div>
+    <div class="field" id="fi-pass-f">
+      <label>Contraseña <a href="#" class="forgot" onclick="showForgot();return false">¿La olvidaste?</a></label>
+      <div class="pw-wrap">
+        <input type="password" id="fi-pass" placeholder="••••••••" autocomplete="current-password">
+        <button class="pw-eye" type="button" onclick="togglePw('fi-pass',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="err">Contraseña incorrecta</div>
+    </div>
+    <button class="btn btn-primary btn-lg btn-full" id="btn-in" onclick="doLogin()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Entrar a mi panel
+    </button>
+    <div class="footer-note">¿Sin cuenta? <a href="#" onclick="switchTab('up');return false">Regístrate gratis</a></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div id="f-up" style="display:none">
+    <div class="auth-title">Crea tu cuenta</div>
+    <div class="auth-sub">Empieza gratis. Tu TapCard lista en minutos.</div>
+    <div class="field-row">
+      <div class="field" id="fu-name-f"><label>Nombre *</label><input type="text" id="fu-name" placeholder="Ana" autocomplete="given-name"><div class="err">Obligatorio</div></div>
+      <div class="field"><label>Apellidos</label><input type="text" id="fu-last" placeholder="García" autocomplete="family-name"></div>
+    </div>
+    <div class="field" id="fu-email-f"><label>Email *</label><input type="email" id="fu-email" placeholder="tu@email.com" autocomplete="email" inputmode="email"><div class="err">Email inválido</div></div>
+    <div class="field" id="fu-pass-f">
+      <label>Contraseña *</label>
+      <div class="pw-wrap">
+        <input type="password" id="fu-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" oninput="pwStrength(this.value)">
+        <button class="pw-eye" type="button" onclick="togglePw('fu-pass',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+      <div class="pw-strength"><div class="pw-strength-fill" id="pw-fill"></div></div>
+      <div class="pw-strength-lbl" id="pw-lbl"></div>
+      <div class="err">Mínimo 6 caracteres</div>
+    </div>
+    <div class="field"><label>Código de tarjeta (opcional)</label><input type="text" id="fu-code" placeholder="TC-XXXX-XXXX" style="text-transform:uppercase"><div style="font-size:11.5px;color:#9CA3AF;margin-top:4px">Si ya tienes una TapCard física, introdúcelo aquí.</div></div>
+    <div class="terms-row">
+      <div class="chk" id="chk" onclick="toggleChk()"></div>
+      <div class="terms-txt">Acepto los <a href="#">Términos</a> y la <a href="#">Política de privacidad</a> de TapCard.</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--red);display:none;margin-bottom:10px" id="terms-err">Debes aceptar los términos</div>
+    <button class="btn btn-primary btn-lg btn-full" id="btn-up" onclick="doRegister()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Crear mi cuenta
+    </button>
+    <div class="footer-note">¿Ya tienes cuenta? <a href="#" onclick="switchTab('in');return false">Inicia sesión</a></div>
+  </div>
+</div>
+
+<script>
+const urlP = new URLSearchParams(window.location.search);
+if(urlP.get('tab')==='register') switchTab('up');
+
+function switchTab(t) {
+  document.getElementById('tab-in').classList.toggle('active', t==='in');
+  document.getElementById('tab-up').classList.toggle('active', t==='up');
+  document.getElementById('f-in').style.display = t==='in' ? '' : 'none';
+  document.getElementById('f-up').style.display  = t==='up' ? '' : 'none';
+  hideAlert();
+}
+function showAlert(msg, type='error') {
+  const a=document.getElementById('alert');
+  document.getElementById('alert-msg').textContent=msg;
+  a.className='alert show '+type;
+}
+function hideAlert(){ document.getElementById('alert').className='alert'; }
+function togglePw(id,btn){
+  const i=document.getElementById(id), show=i.type==='password';
+  i.type=show?'text':'password';
+  btn.querySelector('svg').innerHTML=show?'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>':'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+function pwStrength(v){
+  let s=0;
+  if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  const L=[{w:'20%',c:'#EF4444',t:'Muy débil'},{w:'40%',c:'#F97316',t:'Débil'},{w:'60%',c:'#EAB308',t:'Regular'},{w:'80%',c:'#22C55E',t:'Buena'},{w:'100%',c:'#16A34A',t:'Muy segura'}];
+  const l=L[Math.min(s-1,4)]||{w:'0%',c:'',t:''};
+  const f=document.getElementById('pw-fill'),lb=document.getElementById('pw-lbl');
+  f.style.width=l.w;f.style.background=l.c;lb.style.color=l.c;lb.textContent=l.t;
+}
+let chkOn=false;
+function toggleChk(){chkOn=!chkOn;document.getElementById('chk').classList.toggle('on',chkOn);}
+function setBtn(id,loading,text){
+  const b=document.getElementById(id);b.disabled=loading;
+  b.innerHTML=loading?'<div class="spinner"></div>':text;
+}
+
+async function doLogin(){
+  hideAlert();
+  const email=document.getElementById('fi-email').value.trim();
+  const pass=document.getElementById('fi-pass').value;
+  let ok=true;
+  const ef=document.getElementById('fi-email-f'), pf=document.getElementById('fi-pass-f');
+  ef.classList.toggle('error', !email||!/\S+@\S+\.\S+/.test(email)); if(!email||!/\S+@\S+\.\S+/.test(email)) ok=false;
+  pf.classList.toggle('error', !pass); if(!pass) ok=false;
+  if(!ok) return;
+  setBtn('btn-in',true,'');
+  try {
+    const {user} = await sbSignIn(email, pass);
+    await new Promise(r=>setTimeout(r,400));
+    const u = await sbGetUser();
+    const role = u?.profile?.role || u?.role || 'individual';
+    showAlert('✓ ¡Bienvenido! Redirigiendo...','success');
+    setTimeout(()=>{
+      window.location.href = role==='superadmin'?'superadmin.html':role==='company_admin'?'company.html':'dashboard.html';
+    },700);
+  } catch(e) {
+    showAlert(e.message||'Error al iniciar sesión');
+    setBtn('btn-in',false,'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Entrar a mi panel');
+  }
+}
+
+async function doRegister(){
+  hideAlert();
+  const name=document.getElementById('fu-name').value.trim();
+  const last=document.getElementById('fu-last').value.trim();
+  const email=document.getElementById('fu-email').value.trim();
+  const pass=document.getElementById('fu-pass').value;
+  const code=document.getElementById('fu-code').value.trim().toUpperCase();
+  let ok=true;
+  document.getElementById('fu-name-f').classList.toggle('error',!name); if(!name)ok=false;
+  document.getElementById('fu-email-f').classList.toggle('error',!email||!/\S+@\S+\.\S+/.test(email)); if(!email||!/\S+@\S+\.\S+/.test(email))ok=false;
+  document.getElementById('fu-pass-f').classList.toggle('error',!pass||pass.length<6); if(!pass||pass.length<6)ok=false;
+  document.getElementById('terms-err').style.display=chkOn?'none':'block'; if(!chkOn)ok=false;
+  if(!ok)return;
+  setBtn('btn-up',true,'');
+  try {
+    await sbSignUp(email, pass, { full_name:[name,last].filter(Boolean).join(' '), role:'individual', card_code:code||null });
+    showAlert('✓ ¡Cuenta creada! Redirigiendo...','success');
+    setTimeout(()=>window.location.href='dashboard.html',900);
+  } catch(e) {
+    showAlert(e.message||'Error al crear la cuenta');
+    setBtn('btn-up',false,'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Crear mi cuenta');
+  }
+}
+function showForgot(){showAlert('Recuperación de contraseña: contacta a soporte@tapcard.app','info');}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'){const t=document.getElementById('tab-in').classList.contains('active');if(t)doLogin();else doRegister();}});
+</script>
+</body>
+</html>
