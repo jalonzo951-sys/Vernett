@@ -1,0 +1,41 @@
+name: Build MakerFlow Android APK
+
+on:
+  push:
+    branches: [makerflow-android-build]
+    paths:
+      - 'makerflow-build/**'
+      - '.github/workflows/build-makerflow-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reconstruct source ZIP
+        run: |
+          cat makerflow-build/mfchunk_*.txt | base64 -d > /tmp/makerflow.zip
+          unzip -q /tmp/makerflow.zip -d /tmp/src
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build debug APK
+        working-directory: /tmp/src/MakerFlow3D
+        run: gradle assembleDebug --stacktrace
+      - name: Verify APK
+        run: |
+          test -f /tmp/src/MakerFlow3D/app/build/outputs/apk/debug/app-debug.apk
+          sha256sum /tmp/src/MakerFlow3D/app/build/outputs/apk/debug/app-debug.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: VernetteVoxel-MakerFlow3D-v0.2-APK
+          path: /tmp/src/MakerFlow3D/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
