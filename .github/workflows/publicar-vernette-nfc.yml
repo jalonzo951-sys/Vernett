@@ -1,0 +1,41 @@
+name: Publicar Vernette Voxel Studio NFC
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'vernettevoxelstudio/**'
+      - '.github/workflows/publicar-vernette-nfc.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-vernette
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar archivos
+        uses: actions/checkout@v4
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Preparar contenido
+        run: |
+          mkdir -p _site
+          cp -r vernettevoxelstudio _site/
+          touch _site/.nojekyll
+      - name: Subir sitio
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Publicar sitio
+        id: deployment
+        uses: actions/deploy-pages@v4
